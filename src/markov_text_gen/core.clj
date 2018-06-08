@@ -30,11 +30,13 @@
 
 (defn -main [& args]
   (->>
-   '("moby-dick.txt" "frankenstein.txt" "alice.txt")
+   '("moby-dick.txt" "frankenstein.txt"
+     "alice.txt" "grimms.txt")
    ;; '("test.txt" "test2.txt")
    (map #'load-words)
    (map (partial create-markov-chain 1))
    (map :db)
    (reduce #(merge-with (comp flatten vector) %1 %2))
    (assoc {:state-size 1} :db)
-   (generate 50 "once upon")))
+   (generate 50 "once upon")
+   (println)))
