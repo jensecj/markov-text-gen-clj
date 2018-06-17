@@ -58,7 +58,10 @@
     (s/join " " @story)))
 
 (defn -main [& args]
-  (let [files ["moby-dick" "frankenstein" "alice" "grimms" "dracula" "sherlock" "huckleberry" "treasure-island"]]
+  (let [files ["moby-dick" "frankenstein" "alice"
+               "grimms" "dracula" "sherlock"
+               "huckleberry" "treasure-island" "oz"
+               "baskerville"]]
     (let [state-size 2]
       (time
        (->>
