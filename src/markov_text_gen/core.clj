@@ -14,9 +14,10 @@
                      (io/resource)
                      (io/file)
                      (slurp)
-                     ;; remove formatting, and parens, since we cant count open/closed parens
                      (s/lower-case)
-                     (s/replace #"[\n|—|\(|\)\"\'\`\´\t\“\-\;\:]" " ")
+                     ;; remove formatting and special characters from input text
+                     (s/replace #"[^a-z|^ |^.|^,]*" "")
+                     ;; compress excess white space
                      (s/replace #"[ ]+" " ")
                      (s/split #" ")))))
 
