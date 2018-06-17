@@ -1,5 +1,5 @@
 (ns markov-text-gen.core
-  (:require [clojure.string :as s]
+  (:require [clojure.string :as str]
             [clojure.java.io :as io])
   (:gen-class))
 
@@ -17,18 +17,18 @@
                      (io/resource)
                      (io/file)
                      (slurp)
-                     (s/lower-case)
+                     (str/lower-case)
                      ;; remove formatting and special characters from input text
-                     (s/replace #"[^a-z|^ |^.|^,]*" "")
+                     (str/replace #"[^a-z|^ |^.|^,]*" "")
                      ;; compress excess white space
-                     (s/replace #"[ ]+" " ")
-                     (s/split #" ")))))
+                     (str/replace #"[ ]+" " ")
+                     (str/split #" ")))))
 
 (defn- create-markov-chain
   "Creates a markov-chain of size STATE-SIZE, from the list of candidate WORDS."
   [state-size {words :words :as ctx}]
   (let [part (partition state-size words)
-        keys (map (partial s/join " ") part)
+        keys (map (partial str/join " ") part)
         values (rest (map #'first part))
         values (remove #(= % " " "") values)]
     (-> ctx
@@ -38,7 +38,7 @@
 (defn- save-markov-chain-to-file
   "Saves a markov-chain to a file on disk."
   [markov]
-  (let [file (s/replace (:file markov) #".txt" ".markov")]
+  (let [file (str/replace (:file markov) #".txt" ".markov")]
     (println "saving " (:file markov))
     (spit (str "markov-files/" file) (with-out-str (pr markov)))))
 
@@ -61,12 +61,12 @@
   "tries to generate a sentence starting with INITAL-WORDS, taking ITERATIONS, and
   using MARKOV-CHAIN as the source of new content."
   [iterations initial-words markov-chain]
-  (let [story (atom (into [] (s/split initial-words #" ")))]
+  (let [story (atom (into [] (str/split initial-words #" ")))]
     (dotimes [i iterations]
       (let [db (:db markov-chain)
             state-size (:state-size markov-chain)
             items (take-last state-size @story)
-            pattern (s/join " " items)
+            pattern (str/join " " items)
             result (get db pattern "")]
         (cond
           ;; if there are multiple choices in the chain for some input, pick a random one
@@ -74,7 +74,7 @@
           (not (empty? result)) (swap! story conj result)
           :else nil ;; short-circuits if there is not match in the markov chain.
           )))
-    (s/join " " @story)))
+    (str/join " " @story)))
 
 (defn -main [& args]
   (let [files ["moby-dick" "frankenstein" "alice"
