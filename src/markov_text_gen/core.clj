@@ -46,12 +46,14 @@
 (defn- generate [iterations initial-words markov-chain]
   (let [story (atom (into [] (s/split initial-words #" ")))]
     (dotimes [i iterations]
-      (let [items (take-last (:state-size markov-chain) @story)
+      (let [db (:db markov-chain)
+            state-size (:state-size markov-chain)
+            items (take-last state-size @story)
             pattern (s/join " " items)
-            result (get (:db markov-chain) pattern "")]
+            result (get db pattern "")]
         (cond
           (seq? result) (swap! story conj (rand-nth result))
-          (not (empty? "")) (swap! story conj result)
+          (not (empty? result)) (swap! story conj result)
           :else nil)))
     (s/join " " @story)))
 
