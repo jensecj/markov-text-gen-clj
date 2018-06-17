@@ -16,7 +16,7 @@
                      (slurp)
                      ;; remove formatting, and parens, since we cant count open/closed parens
                      (s/lower-case)
-                     (s/replace #"[\n|—|\(|\)\"'`´\t“]" " ")
+                     (s/replace #"[\n|—|\(|\)\"\'\`\´\t\“\-\;\:]" " ")
                      (s/replace #"[ ]+" " ")
                      (s/split #" ")))))
 
