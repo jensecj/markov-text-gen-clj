@@ -1,21 +1,47 @@
 (ns markov-text-gen.core
-  (:require [clojure.string :as s])
+  (:require [clojure.string :as s]
+            [clojure.java.io :as io])
   (:gen-class))
 
-(defn- load-words [file]
-  (-> file
-      (clojure.java.io/resource)
-      (clojure.java.io/file)
-      (slurp)
-      ;; remove formatting, and parens, since we cant count open/closed parens
-      (s/replace #"[\n|—|\(|\)]" " ")
-      (s/split #" ")))
+;; need this to spit big maps to file, dont print them to console
+(set! *print-length* nil)
 
-(defn- create-markov-chain [state-size words]
+(defn- load-words-from-resource [file]
+  (println "loading " file)
+  (assoc {:file file} :words
+         (filter #(not (= % " " ""))
+                 (-> file
+                     (io/resource)
+                     (io/file)
+                     (slurp)
+                     ;; remove formatting, and parens, since we cant count open/closed parens
+                     (s/lower-case)
+                     (s/replace #"[\n|—|\(|\)\"'`´\t“]" " ")
+                     (s/replace #"[ ]+" " ")
+                     (s/split #" ")))))
+
+(defn- create-markov-chain [state-size {words :words :as ctx}]
   (let [part (partition state-size words)
         keys (map (partial s/join " ") part)
-        values (rest (map #'first part))]
-    {:state-size state-size :db (zipmap keys values)}))
+        values (rest (map #'first part))
+        values (remove #(= % " " "") values)]
+    (-> ctx
+        (dissoc :words)
+        (assoc :state-size state-size :db (zipmap keys values)))))
+
+(defn- save-markov-chain-to-file [markov]
+  (let [file (s/replace (:file markov) #".txt" ".markov")]
+    (println "saving " (:file markov))
+    (spit (str "markov-files/" file) (with-out-str (pr markov)))))
+
+(defn- load-markov-chain-from-file [file]
+  (println "loading " file)
+  (read-string (slurp file)))
+
+(defn- merge-markov-chains [chains]
+  (->> chains
+       (pmap :db)
+       (reduce #(merge-with (comp flatten vector) %1 %2))))
 
 (defn- generate [iterations initial-words markov-chain]
   (let [story (atom (into [] (s/split initial-words #" ")))]
@@ -23,20 +49,34 @@
       (let [items (take-last (:state-size markov-chain) @story)
             pattern (s/join " " items)
             result (get (:db markov-chain) pattern "")]
-        (if (seq? result)
-          (swap! story conj (rand-nth result))
-          (swap! story conj result))))
+        (cond
+          (seq? result) (swap! story conj (rand-nth result))
+          (not (empty? "")) (swap! story conj result)
+          :else nil)))
     (s/join " " @story)))
 
 (defn -main [& args]
-  (->>
-   '("moby-dick.txt" "frankenstein.txt"
-     "alice.txt" "grimms.txt")
-   ;; '("test.txt" "test2.txt")
-   (map #'load-words)
-   (map (partial create-markov-chain 1))
-   (map :db)
-   (reduce #(merge-with (comp flatten vector) %1 %2))
-   (assoc {:state-size 1} :db)
-   (generate 50 "once upon")
-   (println)))
+  (let [files ["moby-dick" "frankenstein" "alice" "grimms" "dracula" "sherlock" "huckleberry" "treasure-island"]]
+    (let [state-size 2]
+      (time
+       (->>
+        files
+        (map #(str % ".txt"))
+        (map #'load-words-from-resource)
+        (map (partial create-markov-chain state-size))
+        (map #'save-markov-chain-to-file)
+        (pr-str)
+        )))
+
+    (let [state-size 2]
+      (time
+       (->>
+        files
+        (map #(str "markov-files/" % ".markov"))
+        (filter #(.exists (io/file %)))
+        (pmap #'load-markov-chain-from-file)
+        (merge-markov-chains)
+        (assoc {:state-size state-size} :db)
+        (generate 50 "it was")
+        ))))
+  )
