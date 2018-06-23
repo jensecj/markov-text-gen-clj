@@ -3,9 +3,6 @@
             [clojure.java.io :as io])
   (:gen-class))
 
-;; need this to spit big maps to file, dont print them to console
-(set! *print-length* nil)
-
 (defn- load-words-from-resource
   "Loads words from a file. Creates a vector of cleaned words by reading a file
   from disk, and applying formatting."
@@ -37,9 +34,14 @@
 (defn- save-markov-chain-to-file
   "Saves a markov-chain to a file on disk."
   [markov]
-  (let [file (str/replace (:file markov) #".txt" ".markov")]
-    (println "saving " (:file markov))
-    (spit (str "markov-files/" file) (with-out-str (pr markov)))))
+  (let [file (:file markov)
+        file (str/replace file #".txt" ".markov")
+        file (str "markov-files/" file)]
+    (println "saving " file)
+    (with-open [out-file (io/writer file)]
+      (binding [*print-length* nil
+                *out* out-file]
+        (pr markov)))))
 
 (defn- load-markov-chain-from-file
   "Loads a markov-chain from a file on disk."
