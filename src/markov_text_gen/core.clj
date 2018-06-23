@@ -87,7 +87,7 @@
                "grimms" "dracula" "sherlock"
                "huckleberry" "treasure-island" "oz"
                "baskerville"]
-        state-size 2]
+        state-size 3]
     (println "--------")
 
     (time
@@ -112,7 +112,7 @@
      (->>
       "markov-files/merged.markov"
       load-markov-chain-from-file
-      (generate 50 "it was")
+      (generate 50 "it was a")
       (println)
       )))
   )
