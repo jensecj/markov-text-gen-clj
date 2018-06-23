@@ -15,10 +15,12 @@
                      (io/file)
                      (slurp)
                      (str/lower-case)
+                     ;; convert newlines and inliners into whitespace
+                     (str/replace #"[\n|\-\-]" " ")
+                     ;; compress excess white space, and convert newlines, and inliners into whitespace
+                     (str/replace #" +" " ")
                      ;; remove formatting and special characters from input text
                      (str/replace #"[^a-z|^ |^.|^,]*" "")
-                     ;; compress excess white space
-                     (str/replace #"[ ]+" " ")
                      (str/split #" ")))))
 
 (defn- create-markov-chain
