@@ -1,7 +1,7 @@
 (ns markov-text-gen.core
+  (:gen-class)
   (:require [clojure.string :as str]
-            [clojure.java.io :as io])
-  (:gen-class))
+            [clojure.java.io :as io]))
 
 (defn- load-words-from-resource
   "Loads words from a file. Creates a vector of cleaned words by reading a file
@@ -11,7 +11,7 @@
   (assoc {:file file} :words
          (filter #(not (= % " " ""))
                  (-> file
-                     (io/resource)
+                     (#(str "resources/" %))
                      (io/file)
                      (slurp)
                      (str/lower-case)
@@ -92,8 +92,7 @@
       (map #'load-words-from-resource)
       (map (partial create-markov-chain state-size))
       (map #'save-markov-chain-to-file)
-      (prn)
-      ))
+      (prn)))
 
     (time
      (->> files
