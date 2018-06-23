@@ -29,8 +29,7 @@
   [state-size {words :words :as ctx}]
   (let [part (partition state-size words)
         keys (map (partial str/join " ") part)
-        values (rest (map #'first part))
-        values (remove #(= % " " "") values)]
+        values (rest (map #'first part))]
     (-> ctx
         (dissoc :words)
         (assoc :state-size state-size :db (zipmap keys values)))))
