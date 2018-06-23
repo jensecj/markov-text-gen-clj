@@ -7,7 +7,7 @@
   "Loads words from a file. Creates a vector of cleaned words by reading a file
   from disk, and applying formatting."
   [file]
-  (println "loading " file)
+  (println "loading resource: " file)
   (assoc {:file file} :words
          (filter #(not (= % " " ""))
                  (-> file
@@ -46,7 +46,7 @@
 (defn- load-markov-chain-from-file
   "Loads a markov-chain from a file on disk."
   [file]
-  (println "loading " file)
+  (println "loading markov chain: " file)
   (read-string (slurp file)))
 
 (defn- merge-markov-chains
@@ -99,9 +99,10 @@
         files
         (map #(str "markov-files/" % ".markov"))
         (filter #(.exists (io/file %)))
-        (pmap #'load-markov-chain-from-file)
+        (map #'load-markov-chain-from-file)
         (merge-markov-chains)
         (assoc {:state-size state-size} :db)
-        (generate 50 "it was")
+        (generate 50 "i am")
+        (println)
         ))))
   )
