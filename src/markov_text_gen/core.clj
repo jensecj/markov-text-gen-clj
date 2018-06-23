@@ -3,7 +3,7 @@
   (:require [clojure.string :as str]
             [clojure.java.io :as io]))
 
-(defn- load-words-from-resource
+(defn- load-words-from-file
   "Loads words from a file. Creates a vector of cleaned words by reading a file
   from disk, and applying formatting."
   [file]
@@ -22,7 +22,7 @@
                      (str/split #" ")))))
 
 (defn- create-markov-chain
-  "Creates a markov-chain of size STATE-SIZE, from the list of candidate WORDS."
+  "Creates a markov-chain of STATE-SIZE, from the list of candidate WORDS."
   [state-size {words :words :as ctx}]
   (let [part (partition state-size words)
         keys (map (partial str/join " ") part)
@@ -32,7 +32,7 @@
         (assoc :state-size state-size :db (zipmap keys values)))))
 
 (defn- save-markov-chain-to-file
-  "Saves a markov-chain to a file on disk."
+  "Saves a markov-chain to a file."
   [markov]
   (let [file (:file markov)
         file (str/replace file #".txt" ".markov")
@@ -44,7 +44,7 @@
         (pr markov)))))
 
 (defn- load-markov-chain-from-file
-  "Loads a markov-chain from a file on disk."
+  "Loads a markov-chain from a file."
   [file]
   (println "loading markov chain: " file)
   (read-string (slurp file)))
@@ -52,14 +52,14 @@
 (defn- merge-markov-chains
   "Merges several markov-chains together into a single chain. if a key has
   duplicate values they are perserved by making the value for that key a vector
-  of those."
+  of the duplicates."
   [chains]
   (->> chains
        (pmap :db)
        (reduce #(merge-with (comp flatten vector) %1 %2))))
 
 (defn- generate
-  "tries to generate a sentence starting with INITAL-WORDS, taking ITERATIONS, and
+  "Tries to generate a sentence starting with INITAL-WORDS, taking ITERATIONS, and
   using MARKOV-CHAIN as the source of new content."
   [iterations initial-words markov-chain]
   (let [story (atom (into [] (str/split initial-words #" ")))]
@@ -73,7 +73,7 @@
           ;; if there are multiple choices in the chain for some input, pick a random one
           (seq? result) (swap! story conj (rand-nth result))
           (not (empty? result)) (swap! story conj result)
-          :else nil ;; short-circuits if there is not match in the markov chain.
+          :else nil ;; short-circuits if there is no match in the markov chain.
           )))
     (str/join " " @story)))
 
@@ -89,7 +89,7 @@
      (->>
       files
       (map #(str % ".txt"))
-      (map #'load-words-from-resource)
+      (map #'load-words-from-file)
       (map (partial create-markov-chain state-size))
       (map #'save-markov-chain-to-file)
       (prn)))
