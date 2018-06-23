@@ -26,9 +26,12 @@
 (defn- create-markov-chain
   "Creates a markov-chain of STATE-SIZE, from the list of candidate WORDS."
   [state-size {words :words :as ctx}]
-  (let [part (partition state-size words)
-        keys (map (partial str/join " ") part)
-        values (rest (map #'first part))]
+  (let [state-size-plus-next-word (+ state-size 1)
+        step-size 1
+        part (partition state-size-plus-next-word step-size words)
+        keys (map #'drop-last part)
+        keys (map #(str/join " " %) keys)
+        values (map #'last part)]
     (-> ctx
         (dissoc :words)
         (assoc :state-size state-size :db (zipmap keys values)))))
@@ -109,7 +112,7 @@
      (->>
       "markov-files/merged.markov"
       load-markov-chain-from-file
-      (generate 50 "i am")
+      (generate 50 "it was")
       (println)
       )))
   )
