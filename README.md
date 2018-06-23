@@ -17,3 +17,10 @@ files, which will be saved in `markov-files/`.
 saved.
 
 3) load the merged file, and create a sentence from provided seed words.
+
+## Results
+> "it was a giant dog, as large as a small boy was waiting upon the platform."
+
+> "he did not like to be treated with respect well, thats respect, i expect, declared the clown"
+
+> "she was on my mind, so i slept uneasily and thought."
