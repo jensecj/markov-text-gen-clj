@@ -81,28 +81,34 @@
   (let [files ["moby-dick" "frankenstein" "alice"
                "grimms" "dracula" "sherlock"
                "huckleberry" "treasure-island" "oz"
-               "baskerville"]]
-    (let [state-size 2]
-      (time
-       (->>
-        files
-        (map #(str % ".txt"))
-        (map #'load-words-from-resource)
-        (map (partial create-markov-chain state-size))
-        (map #'save-markov-chain-to-file)
-        (pr-str)
-        )))
+               "baskerville"]
+        state-size 2]
+    (println "--------")
 
-    (let [state-size 2]
-      (time
-       (->>
-        files
-        (map #(str "markov-files/" % ".markov"))
-        (filter #(.exists (io/file %)))
-        (map #'load-markov-chain-from-file)
-        (merge-markov-chains)
-        (assoc {:state-size state-size} :db)
-        (generate 50 "i am")
-        (println)
-        ))))
+    (time
+     (->>
+      files
+      (map #(str % ".txt"))
+      (map #'load-words-from-resource)
+      (map (partial create-markov-chain state-size))
+      (map #'save-markov-chain-to-file)
+      (prn)
+      ))
+
+    (time
+     (->> files
+          (map #(str "markov-files/" % ".markov"))
+          (filter #(.exists (io/file %)))
+          (map #'load-markov-chain-from-file)
+          (merge-markov-chains)
+          (assoc {:state-size state-size :file "merged.txt"} :db)
+          (save-markov-chain-to-file)))
+
+    (time
+     (->>
+      "markov-files/merged.markov"
+      load-markov-chain-from-file
+      (generate 50 "i am")
+      (println)
+      )))
   )
